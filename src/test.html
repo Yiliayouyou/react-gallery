@@ -63,8 +63,13 @@
                     // nextSelection.selectAllChildren(editableCell); // nextSelection 选择input下所有子内容
                     // nextSelection.collapseToEnd(); // 光标移至最后
                     var range = nextSelection.getRangeAt(0);
-                    range.setStart(editableCell, postion);
-                    range.setEnd(editableCell, postion);
+                    if (editableCell.childNodes.length !== 0) {
+                        range.setStart(editableCell.childNodes[0], postion);
+                        range.setEnd(editableCell.childNodes[0], postion);
+                    } else {
+                        range.setStart(editableCell, postion);
+                        range.setEnd(editableCell, postion);
+                    }
                 }
 
                 editableCell.onclick = function(innEvent) {
