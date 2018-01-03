@@ -2,7 +2,7 @@
  * @Author: Yilia
  * @Date: 2017-12-27 23:48:31
  * @Last Modified by: Taoai
- * @Last Modified time: 2018-01-02 19:08:08
+ * @Last Modified time: 2018-01-03 17:38:51
  */
 
 require('normalize.css/normalize.css');
@@ -51,6 +51,45 @@ function randomPos() {
     y: y
   };
 }
+
+class Card extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isInvert: false
+    }
+  }
+
+  handleClick(item) {
+    // 若已在中间，翻转；若在两边，到中间
+    if (item.isCenter) {
+      this.setState({isInvert: !item.isInvert}, () => {
+        item.isInvert = !item.isInvert;
+      });
+    } else {
+      item.isCenter = true;
+      this.props.onCardClick(item);
+    }
+  }
+
+  render() {
+    let data = this.props.data;
+    let trans = this.props.trans;
+
+    let frontSide = (
+      <div className="front">
+        <img src={data.imgUrl} />
+        <div className="card-title">{data.title}</div>
+      </div>);
+
+    let back = (<div className="back">{data.desc}</div>);
+    let side = this.state.isInvert ? back : frontSide;
+
+    return (<div onClick={this.handleClick.bind(this, data)} className="card" style={trans}>
+      {side}
+    </div>);
+  }
+}
 class Cards extends React.Component {
   constructor(props) {
     super(props);
@@ -58,7 +97,7 @@ class Cards extends React.Component {
       imageList: [],
       choosedIndex: -1
     };
-    // this.handleClick = this.handleClick.bind(this);
+    this.handleClick = this.handleClick.bind(this);
   }
 
   componentWillMount() {
@@ -69,16 +108,9 @@ class Cards extends React.Component {
   }
 
   handleClick(item) {
-    // 若已在中间，翻转；若在两边，到中间
-    if (item.isCenter === true) {
-      item.isCenter = false;
-      item.isInvert = true;
-    } else {
-      item.isCenter = true;
       this.setState({choosedIndex: item.index}, () => {
         this.updateImgList();
       });
-    }
   }
 
   updateImgList() {
@@ -97,17 +129,14 @@ class Cards extends React.Component {
       choosedIndex = Math.floor(randomNum(0, imgData.length - 1));
     }
 
-    imgData[choosedIndex].isCenter = true;
-
     let loopData = _.cloneDeep(imgData);
-    loopData.splice(choosedIndex, 1);
 
     _.each(loopData, (item, index) => {
+      item.isInvert = false;
       let angle = '';
       let pos = {};
       let trans = {};
       if (index === choosedIndex) {
-        // angle = '0deg';
         pos = {
           x: window.innerWidth / 2 - 160,
           y: window.innerHeight / 2 - 180
@@ -116,6 +145,7 @@ class Cards extends React.Component {
           left: pos.x,
           top: pos.y
         }
+        item.isCenter = true;
       } else {
         angle = randomAngle() + 'deg';
         pos = randomPos();
@@ -126,25 +156,9 @@ class Cards extends React.Component {
         };
       }
 
-      let show = {
-        display: 'block'
-      };
-      let hide = {
-        display: 'none'
-      }
-      imageList.push(
-        <div onClick={this.handleClick.bind(this, item)} key={index} className="card" style={trans}>
-          <div className="front" style={item.isInvert ? hide : show}>
-            <img src={item.imgUrl} />
-            <div className="card-title">{item.title}</div>
-          </div>
-          <div className="back" style={item.isInvert ? show : hide}>{item.desc}</div>
-        </div>);
+      imageList.push(<Card key={item.index} data={item} invert={item.isInvert} trans={trans} onCardClick={this.handleClick}></Card>);
     });
     return imageList;
-  }
-
-  invertImg() {
   }
 
   render() {
@@ -155,36 +169,36 @@ class Cards extends React.Component {
 
 
 class Dots extends React.Component {
+  handleClick(item) {
+    this.props.onDotClick(item);
+  }
   render() {
     let dotList = [];
     _.each(imgData, (item, index) => {
-      dotList.push(<div key={index} data-url={item.imgUrl} className="dot" />);
+      dotList.push(<div key={index} data={item} onClick={this.handleClick.bind(this, item)} className="dot" />);
     });
-    return <div className="dots">{dotList}</div>;
+  return (
+    <div className="control-bar">
+      <div className="dots">{dotList}</div>
+    </div>);
   }
 }
-class ControlBar extends React.Component {
-  render() {
-    return (
-      <div className="control-bar">
-        <Dots></Dots>
-      </div>
-    )
-  }
-}
-
 
 class AppComponent extends React.Component {
-  handleClick () {
-    alert('clicked');
-    console.log(imgData);
+  constructor(props) {
+    super(props);
+    this.handleClickDot = this.handleClickDot.bind(this);
+  }
+
+  handleClickDot (item) {
+    this.refs.cards.handleClick(item);
   }
 
   render() {
     return (
       <div className="index">
-        <Cards></Cards>
-        <ControlBar></ControlBar>
+        <Cards ref="cards"></Cards>
+        <Dots onDotClick={this.handleClickDot}></Dots>
       </div>
     );
   }
