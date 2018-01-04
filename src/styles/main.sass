@@ -19,6 +19,10 @@
     box-shadow: 1px 2px darkgrey;
     border-radius: 4px;
 
+    transform-origin: 0 50% 0;
+    transform-style: preserve-3d;
+    transition: transform .6s ease-in-out, left .6s ease-in-out, top .6s ease-in-out;
+
     .card-title
         height: 40px;
         font-size: 14px;
@@ -53,5 +57,3 @@
         background-color: rgba(255, 255, 255, 0.6);
         float: left;
         margin: 8px;
-
-
